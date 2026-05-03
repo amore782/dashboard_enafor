@@ -1,1 +1,500 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dashboard ENAFOR — Direction Forage</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --bg: #080c10;
+  --surface: #0d1520;
+  --surface2: #121d2e;
+  --border: #1e3048;
+  --accent: #00c8ff;
+  --accent2: #00ff9d;
+  --red: #ff4560;
+  --amber: #ffa500;
+  --text: #e2eaf4;
+  --muted: #5a7a9a;
+  --radius: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--accent);
+}
+.logo span { color: var(--text); }
+.header-meta { text-align: right; font-size: .78rem; color: var(--muted); }
+.header-meta strong { color: var(--accent2); font-family: 'IBM Plex Mono', monospace; }
+.live-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: var(--accent2);
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── ALERT BANNER ── */
+.alert-banner {
+  background: rgba(255,69,96,.12);
+  border-bottom: 1px solid rgba(255,69,96,.4);
+  padding: 10px 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: .82rem;
+}
+.alert-icon {
+  width: 20px; height: 20px;
+  border: 1.5px solid var(--red);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--red);
+  font-weight: 700; font-size: .75rem;
+  flex-shrink: 0;
+}
+.alert-text { color: var(--red); font-weight: 500; }
+.alert-time { color: var(--muted); margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: .75rem; }
+
+/* ── MAIN LAYOUT ── */
+main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .68rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  margin-top: 28px;
+  padding-left: 2px;
+}
+
+/* ── KPI GRID ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.kpi:hover { border-color: var(--accent); }
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--kpi-color, var(--accent));
+}
+.kpi-label {
+  font-size: .68rem;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--kpi-color, var(--accent));
+  line-height: 1;
+}
+.kpi-unit {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.kpi-delta {
+  font-size: .72rem;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-top: 6px;
+}
+.kpi-delta.up { color: var(--red); }
+.kpi-delta.down { color: var(--accent2); }
+
+/* ── CHARTS GRID ── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.chart-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .72rem;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* ── TABLE ── */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+thead tr { background: #0a1420; border-bottom: 1px solid var(--border); }
+thead th {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .66rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  text-align: left;
+}
+tbody tr { border-bottom: 1px solid #0f1e2e; transition: background .15s; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 11px 16px; }
+.mono { font-family: 'IBM Plex Mono', monospace; font-size: .8rem; text-align: right; }
+.badge {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.badge.ok { background: rgba(0,255,157,.1); color: var(--accent2); border: 1px solid rgba(0,255,157,.3); }
+.badge.warn { background: rgba(255,165,0,.1); color: var(--amber); border: 1px solid rgba(255,165,0,.3); }
+.badge.crit { background: rgba(255,69,96,.12); color: var(--red); border: 1px solid rgba(255,69,96,.4); }
+.bar-cell { display: flex; align-items: center; gap: 8px; }
+.bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 2px; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  font-size: .7rem;
+  color: var(--muted);
+  padding: 24px 32px;
+  border-top: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div class="logo">ENA<span>FOR</span></div>
+    <div style="font-size:.72rem;color:var(--muted);margin-top:3px">Direction Planification &amp; Contrôle de Gestion</div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:600;color:var(--text)">Direction Forage — Rapport Mensuel</div>
+    <div style="font-size:.75rem;color:var(--muted);margin-top:2px">Période : Janvier 2024 &nbsp;|&nbsp; Consolidé branche</div>
+  </div>
+  <div class="header-meta">
+    <div><span class="live-dot"></span>Généré automatiquement via API SAP</div>
+    <div style="margin-top:4px">Extraction : <strong>06:00:00</strong> — 01/02/2024</div>
+    <div style="margin-top:2px">Source : SAP CO · COEP · COSS · CSKS</div>
+  </div>
+</header>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner">
+  <div class="alert-icon">!</div>
+  <div class="alert-text">ALERTE — NPT MO appareil ENF-12 : 24% ce mois &gt; seuil 10% — Email + SMS envoyés au responsable</div>
+  <div class="alert-time">06:01:34</div>
+</div>
+
+<main>
+
+  <!-- KPI CARDS -->
+  <div class="section-label">Indicateurs clés — Janvier 2024</div>
+  <div class="kpi-grid">
+
+    <div class="kpi" style="--kpi-color:var(--accent)">
+      <div class="kpi-label">Équivalent T1</div>
+      <div class="kpi-value">82.4</div>
+      <div class="kpi-unit">% — EQ T1 branche</div>
+      <div class="kpi-delta down">▼ +2.1 vs mois préc.</div>
+    </div>
+
+    <div class="kpi" style="--kpi-color:var(--accent2)">
+      <div class="kpi-label">Taux d'utilisation</div>
+      <div class="kpi-value">78.3</div>
+      <div class="kpi-unit">% — Temps placé / Total</div>
+      <div class="kpi-delta down">▼ stable vs budget</div>
+    </div>
+
+    <div class="kpi" style="--kpi-color:var(--amber)">
+      <div class="kpi-label">NPT Global</div>
+      <div class="kpi-value">14.2</div>
+      <div class="kpi-unit">% — Non productif</div>
+      <div class="kpi-delta up">▲ +3.8 vs budget 10%</div>
+    </div>
+
+    <div class="kpi" style="--kpi-color:var(--red)">
+      <div class="kpi-label">Écart Budget</div>
+      <div class="kpi-value">-8.6</div>
+      <div class="kpi-unit">% — Réalisé vs prévu</div>
+      <div class="kpi-delta up">▲ dépassement coûts</div>
+    </div>
+
+    <div class="kpi" style="--kpi-color:#a78bfa">
+      <div class="kpi-label">Coeff. Facturation</div>
+      <div class="kpi-value">0.87</div>
+      <div class="kpi-unit">CF = EQ T1 / TD</div>
+      <div class="kpi-delta down">▼ cible : 0.92</div>
+    </div>
+
+  </div>
+
+  <!-- CHARTS -->
+  <div class="section-label">Analyse graphique</div>
+  <div class="charts-grid">
+
+    <div class="chart-card">
+      <div class="chart-title">Budget vs Réalisé — par mois (DA millions)</div>
+      <canvas id="chartBudget" height="220"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Décomposition NPT — Janvier 2024</div>
+      <canvas id="chartNPT" height="220"></canvas>
+    </div>
+
+  </div>
+
+  <!-- TABLE APPAREILS -->
+  <div class="section-label">Détail par appareil de forage</div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Appareil</th>
+          <th>Statut</th>
+          <th>T1 (jours)</th>
+          <th>T2 (jours)</th>
+          <th>T3 (jours)</th>
+          <th>NPT MO %</th>
+          <th>NPT ENF %</th>
+          <th>EQ T1 %</th>
+          <th>CF</th>
+          <th>Taux util.</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td><strong>ENF-07</strong></td>
+          <td><span class="badge ok">NORMAL</span></td>
+          <td class="mono">22</td>
+          <td class="mono">4</td>
+          <td class="mono">2</td>
+          <td class="mono" style="color:var(--accent2)">6.2%</td>
+          <td class="mono">3.1%</td>
+          <td>
+            <div class="bar-cell">
+              <div class="bar-bg"><div class="bar-fill" style="width:91%;background:var(--accent2)"></div></div>
+              <span class="mono">91%</span>
+            </div>
+          </td>
+          <td class="mono" style="color:var(--accent2)">0.94</td>
+          <td class="mono">93%</td>
+        </tr>
+
+        <tr>
+          <td><strong>ENF-09</strong></td>
+          <td><span class="badge ok">NORMAL</span></td>
+          <td class="mono">20</td>
+          <td class="mono">5</td>
+          <td class="mono">3</td>
+          <td class="mono" style="color:var(--accent2)">8.1%</td>
+          <td class="mono">5.2%</td>
+          <td>
+            <div class="bar-cell">
+              <div class="bar-bg"><div class="bar-fill" style="width:87%;background:var(--accent)"></div></div>
+              <span class="mono">87%</span>
+            </div>
+          </td>
+          <td class="mono" style="color:var(--accent)">0.91</td>
+          <td class="mono">90%</td>
+        </tr>
+
+        <tr>
+          <td><strong>ENF-11</strong></td>
+          <td><span class="badge warn">ATTENTION</span></td>
+          <td class="mono">16</td>
+          <td class="mono">6</td>
+          <td class="mono">5</td>
+          <td class="mono" style="color:var(--amber)">11.4%</td>
+          <td class="mono">7.8%</td>
+          <td>
+            <div class="bar-cell">
+              <div class="bar-bg"><div class="bar-fill" style="width:79%;background:var(--amber)"></div></div>
+              <span class="mono">79%</span>
+            </div>
+          </td>
+          <td class="mono" style="color:var(--amber)">0.83</td>
+          <td class="mono">81%</td>
+        </tr>
+
+        <tr style="background:rgba(255,69,96,.05)">
+          <td><strong style="color:var(--red)">ENF-12</strong></td>
+          <td><span class="badge crit">CRITIQUE</span></td>
+          <td class="mono">12</td>
+          <td class="mono">5</td>
+          <td class="mono">8</td>
+          <td class="mono" style="color:var(--red)">24.0%</td>
+          <td class="mono">9.3%</td>
+          <td>
+            <div class="bar-cell">
+              <div class="bar-bg"><div class="bar-fill" style="width:63%;background:var(--red)"></div></div>
+              <span class="mono" style="color:var(--red)">63%</span>
+            </div>
+          </td>
+          <td class="mono" style="color:var(--red)">0.66</td>
+          <td class="mono" style="color:var(--red)">71%</td>
+        </tr>
+
+        <tr>
+          <td><strong>ENF-14</strong></td>
+          <td><span class="badge ok">NORMAL</span></td>
+          <td class="mono">21</td>
+          <td class="mono">5</td>
+          <td class="mono">2</td>
+          <td class="mono" style="color:var(--accent2)">7.5%</td>
+          <td class="mono">4.1%</td>
+          <td>
+            <div class="bar-cell">
+              <div class="bar-bg"><div class="bar-fill" style="width:89%;background:var(--accent2)"></div></div>
+              <span class="mono">89%</span>
+            </div>
+          </td>
+          <td class="mono" style="color:var(--accent2)">0.93</td>
+          <td class="mono">91%</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  ENAFOR · Direction Planification &amp; Contrôle de Gestion · 2024 &nbsp;|&nbsp;
+  Généré automatiquement — API Python + SAP CO · Aucune saisie manuelle
+</footer>
+
+<script>
+const ACCENT  = '#00c8ff';
+const GREEN   = '#00ff9d';
+const RED     = '#ff4560';
+const AMBER   = '#ffa500';
+const GRID    = 'rgba(30,48,72,0.8)';
+const MUTED   = '#5a7a9a';
+
+Chart.defaults.color = MUTED;
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size   = 11;
+
+const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+const budget   = [420,418,425,430,428,435,440,438,442,445,448,450];
+const realise  = [388,395,410,420,415,428,435,429,438,441,444,446];
+
+new Chart(document.getElementById('chartBudget'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      {
+        label: 'Budget',
+        data: budget,
+        backgroundColor: 'rgba(0,200,255,0.15)',
+        borderColor: ACCENT,
+        borderWidth: 1.5,
+        borderRadius: 3,
+      },
+      {
+        label: 'Réalisé',
+        data: realise,
+        backgroundColor: 'rgba(0,255,157,0.15)',
+        borderColor: GREEN,
+        borderWidth: 1.5,
+        borderRadius: 3,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } } },
+    scales: {
+      x: { grid: { color: GRID } },
+      y: { grid: { color: GRID }, ticks: { callback: v => v+'M' } },
+    },
+  },
+});
+
+new Chart(document.getElementById('chartNPT'), {
+  type: 'doughnut',
+  data: {
+    labels: ['T1 — Productif', 'NPT MO', 'NPT ENF', 'DTM', 'Hors activité'],
+    datasets: [{
+      data: [72, 10, 8, 6, 4],
+      backgroundColor: [GREEN, RED, AMBER, ACCENT, MUTED],
+      borderWidth: 0,
+      hoverOffset: 6,
+    }],
+  },
+  options: {
+    responsive: true,
+    cutout: '68%',
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
+    },
+  },
+});
+</script>
+</body>
+</html>
