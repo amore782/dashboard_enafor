@@ -1,498 +1,494 @@
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Dashboard ENAFOR — Direction Forage</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
-
-:root {
-  --bg: #080c10;
-  --surface: #0d1520;
-  --surface2: #121d2e;
-  --border: #1e3048;
-  --accent: #00c8ff;
-  --accent2: #00ff9d;
-  --red: #ff4560;
-  --amber: #ffa500;
-  --text: #e2eaf4;
-  --muted: #5a7a9a;
-  --radius: 8px;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'IBM Plex Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  padding: 0;
-}
-
-/* ── HEADER ── */
-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.logo {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  color: var(--accent);
-}
-.logo span { color: var(--text); }
-.header-meta { text-align: right; font-size: .78rem; color: var(--muted); }
-.header-meta strong { color: var(--accent2); font-family: 'IBM Plex Mono', monospace; }
-.live-dot {
-  display: inline-block;
-  width: 8px; height: 8px;
-  background: var(--accent2);
-  border-radius: 50%;
-  margin-right: 6px;
-  animation: pulse 2s infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-/* ── ALERT BANNER ── */
-.alert-banner {
-  background: rgba(255,69,96,.12);
-  border-bottom: 1px solid rgba(255,69,96,.4);
-  padding: 10px 32px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: .82rem;
-}
-.alert-icon {
-  width: 20px; height: 20px;
-  border: 1.5px solid var(--red);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--red);
-  font-weight: 700; font-size: .75rem;
-  flex-shrink: 0;
-}
-.alert-text { color: var(--red); font-weight: 500; }
-.alert-time { color: var(--muted); margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: .75rem; }
-
-/* ── MAIN LAYOUT ── */
-main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
-
-/* ── SECTION LABEL ── */
-.section-label {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: .68rem;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  margin-top: 28px;
-  padding-left: 2px;
-}
-
-/* ── KPI GRID ── */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-}
-.kpi {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  position: relative;
-  overflow: hidden;
-  transition: border-color .2s;
-}
-.kpi:hover { border-color: var(--accent); }
-.kpi::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--kpi-color, var(--accent));
-}
-.kpi-label {
-  font-size: .68rem;
-  color: var(--muted);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.kpi-value {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--kpi-color, var(--accent));
-  line-height: 1;
-}
-.kpi-unit {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: .7rem;
-  color: var(--muted);
-  margin-top: 4px;
-}
-.kpi-delta {
-  font-size: .72rem;
-  font-family: 'IBM Plex Mono', monospace;
-  margin-top: 6px;
-}
-.kpi-delta.up { color: var(--red); }
-.kpi-delta.down { color: var(--accent2); }
-
-/* ── CHARTS GRID ── */
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.chart-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-}
-.chart-title {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: .72rem;
-  color: var(--muted);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-}
-
-/* ── TABLE ── */
-.table-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
-thead tr { background: #0a1420; border-bottom: 1px solid var(--border); }
-thead th {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: .66rem;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  padding: 12px 16px;
-  text-align: left;
-}
-tbody tr { border-bottom: 1px solid #0f1e2e; transition: background .15s; }
-tbody tr:hover { background: var(--surface2); }
-tbody td { padding: 11px 16px; }
-.mono { font-family: 'IBM Plex Mono', monospace; font-size: .8rem; text-align: right; }
-.badge {
-  display: inline-block;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: .65rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-.badge.ok { background: rgba(0,255,157,.1); color: var(--accent2); border: 1px solid rgba(0,255,157,.3); }
-.badge.warn { background: rgba(255,165,0,.1); color: var(--amber); border: 1px solid rgba(255,165,0,.3); }
-.badge.crit { background: rgba(255,69,96,.12); color: var(--red); border: 1px solid rgba(255,69,96,.4); }
-.bar-cell { display: flex; align-items: center; gap: 8px; }
-.bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-.bar-fill { height: 100%; border-radius: 2px; }
-
-/* ── FOOTER ── */
-footer {
-  text-align: center;
-  font-size: .7rem;
-  color: var(--muted);
-  padding: 24px 32px;
-  border-top: 1px solid var(--border);
-  font-family: 'IBM Plex Mono', monospace;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>ENAFOR - Dashboard Contrôleur de Gestion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; }
+        .sidebar { background: #1e293b; min-height: 100vh; width: 260px; position: fixed; top: 0; left: 0; z-index: 100; overflow-y: auto; }
+        .nav-item { padding: 14px 20px; color: #94a3b8; cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; }
+        .nav-item:hover, .nav-item.active { background: #334155; color: white; border-left-color: #3b82f6; }
+        .main-content { margin-left: 260px; padding: 24px; }
+        .kpi-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.3s; }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .status-excellent { background: #d1fae5; color: #065f46; }
+        .status-bon { background: #dbeafe; color: #1e40af; }
+        .status-moyen { background: #fef3c7; color: #92400e; }
+        .status-critique { background: #fee2e2; color: #991b1b; }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .gradient-header { background: linear-gradient(135deg, #1e3a5f, #2c5282); }
+        .chart-container { position: relative; height: 280px; }
+        .btn-primary { background: linear-gradient(135deg, #1e3a5f, #2c5282); color: white; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(30,58,95,0.3); }
+        .alert-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 600; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        tr:hover { background: #f8fafc; }
+        input[type="text"] { border: 1px solid #e2e8f0; }
+        input[type="text"]:focus { outline: none; border-color: #3b82f6; }
+    </style>
 </head>
 <body>
-
-<!-- HEADER -->
-<header>
-  <div>
-    <div class="logo">ENA<span>FOR</span></div>
-    <div style="font-size:.72rem;color:var(--muted);margin-top:3px">Direction Planification &amp; Contrôle de Gestion</div>
-  </div>
-  <div style="text-align:center">
-    <div style="font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:600;color:var(--text)">Direction Forage — Rapport Mensuel</div>
-    <div style="font-size:.75rem;color:var(--muted);margin-top:2px">Période : Janvier 2024 &nbsp;|&nbsp; Consolidé branche</div>
-  </div>
-  <div class="header-meta">
-    <div><span class="live-dot"></span>Généré automatiquement via API SAP</div>
-    <div style="margin-top:4px">Extraction : <strong>06:00:00</strong> — 01/02/2024</div>
-    <div style="margin-top:2px">Source : SAP CO · COEP · COSS · CSKS</div>
-  </div>
-</header>
-
-<!-- ALERT BANNER -->
-<div class="alert-banner">
-  <div class="alert-icon">!</div>
-  <div class="alert-text">ALERTE — NPT MO appareil ENF-12 : 24% ce mois &gt; seuil 10% — Email + SMS envoyés au responsable</div>
-  <div class="alert-time">06:01:34</div>
-</div>
-
-<main>
-
-  <!-- KPI CARDS -->
-  <div class="section-label">Indicateurs clés — Janvier 2024</div>
-  <div class="kpi-grid">
-
-    <div class="kpi" style="--kpi-color:var(--accent)">
-      <div class="kpi-label">Équivalent T1</div>
-      <div class="kpi-value">82.4</div>
-      <div class="kpi-unit">% — EQ T1 branche</div>
-      <div class="kpi-delta down">▼ +2.1 vs mois préc.</div>
-    </div>
-
-    <div class="kpi" style="--kpi-color:var(--accent2)">
-      <div class="kpi-label">Taux d'utilisation</div>
-      <div class="kpi-value">78.3</div>
-      <div class="kpi-unit">% — Temps placé / Total</div>
-      <div class="kpi-delta down">▼ stable vs budget</div>
-    </div>
-
-    <div class="kpi" style="--kpi-color:var(--amber)">
-      <div class="kpi-label">NPT Global</div>
-      <div class="kpi-value">14.2</div>
-      <div class="kpi-unit">% — Non productif</div>
-      <div class="kpi-delta up">▲ +3.8 vs budget 10%</div>
-    </div>
-
-    <div class="kpi" style="--kpi-color:var(--red)">
-      <div class="kpi-label">Écart Budget</div>
-      <div class="kpi-value">-8.6</div>
-      <div class="kpi-unit">% — Réalisé vs prévu</div>
-      <div class="kpi-delta up">▲ dépassement coûts</div>
-    </div>
-
-    <div class="kpi" style="--kpi-color:#a78bfa">
-      <div class="kpi-label">Coeff. Facturation</div>
-      <div class="kpi-value">0.87</div>
-      <div class="kpi-unit">CF = EQ T1 / TD</div>
-      <div class="kpi-delta down">▼ cible : 0.92</div>
-    </div>
-
-  </div>
-
-  <!-- CHARTS -->
-  <div class="section-label">Analyse graphique</div>
-  <div class="charts-grid">
-
-    <div class="chart-card">
-      <div class="chart-title">Budget vs Réalisé — par mois (DA millions)</div>
-      <canvas id="chartBudget" height="220"></canvas>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-title">Décomposition NPT — Janvier 2024</div>
-      <canvas id="chartNPT" height="220"></canvas>
-    </div>
-
-  </div>
-
-  <!-- TABLE APPAREILS -->
-  <div class="section-label">Détail par appareil de forage</div>
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Appareil</th>
-          <th>Statut</th>
-          <th>T1 (jours)</th>
-          <th>T2 (jours)</th>
-          <th>T3 (jours)</th>
-          <th>NPT MO %</th>
-          <th>NPT ENF %</th>
-          <th>EQ T1 %</th>
-          <th>CF</th>
-          <th>Taux util.</th>
-        </tr>
-      </thead>
-      <tbody>
-
-        <tr>
-          <td><strong>ENF-07</strong></td>
-          <td><span class="badge ok">NORMAL</span></td>
-          <td class="mono">22</td>
-          <td class="mono">4</td>
-          <td class="mono">2</td>
-          <td class="mono" style="color:var(--accent2)">6.2%</td>
-          <td class="mono">3.1%</td>
-          <td>
-            <div class="bar-cell">
-              <div class="bar-bg"><div class="bar-fill" style="width:91%;background:var(--accent2)"></div></div>
-              <span class="mono">91%</span>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="p-5 border-b border-slate-700">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-oil-well text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold text-lg">ENAFOR</h1>
+                    <p class="text-slate-400 text-xs">Entreprise Nationale de Forage</p>
+                </div>
             </div>
-          </td>
-          <td class="mono" style="color:var(--accent2)">0.94</td>
-          <td class="mono">93%</td>
-        </tr>
-
-        <tr>
-          <td><strong>ENF-09</strong></td>
-          <td><span class="badge ok">NORMAL</span></td>
-          <td class="mono">20</td>
-          <td class="mono">5</td>
-          <td class="mono">3</td>
-          <td class="mono" style="color:var(--accent2)">8.1%</td>
-          <td class="mono">5.2%</td>
-          <td>
-            <div class="bar-cell">
-              <div class="bar-bg"><div class="bar-fill" style="width:87%;background:var(--accent)"></div></div>
-              <span class="mono">87%</span>
+        </div>
+        <nav class="mt-4">
+            <div class="nav-item active" onclick="showSection('dashboard', this)">
+                <i class="fas fa-chart-line w-6"></i> Tableau de Bord
             </div>
-          </td>
-          <td class="mono" style="color:var(--accent)">0.91</td>
-          <td class="mono">90%</td>
-        </tr>
-
-        <tr>
-          <td><strong>ENF-11</strong></td>
-          <td><span class="badge warn">ATTENTION</span></td>
-          <td class="mono">16</td>
-          <td class="mono">6</td>
-          <td class="mono">5</td>
-          <td class="mono" style="color:var(--amber)">11.4%</td>
-          <td class="mono">7.8%</td>
-          <td>
-            <div class="bar-cell">
-              <div class="bar-bg"><div class="bar-fill" style="width:79%;background:var(--amber)"></div></div>
-              <span class="mono">79%</span>
+            <div class="nav-item" onclick="showSection('chantiers', this)">
+                <i class="fas fa-map-marker-alt w-6"></i> Chantiers (24)
             </div>
-          </td>
-          <td class="mono" style="color:var(--amber)">0.83</td>
-          <td class="mono">81%</td>
-        </tr>
-
-        <tr style="background:rgba(255,69,96,.05)">
-          <td><strong style="color:var(--red)">ENF-12</strong></td>
-          <td><span class="badge crit">CRITIQUE</span></td>
-          <td class="mono">12</td>
-          <td class="mono">5</td>
-          <td class="mono">8</td>
-          <td class="mono" style="color:var(--red)">24.0%</td>
-          <td class="mono">9.3%</td>
-          <td>
-            <div class="bar-cell">
-              <div class="bar-bg"><div class="bar-fill" style="width:63%;background:var(--red)"></div></div>
-              <span class="mono" style="color:var(--red)">63%</span>
+            <div class="nav-item" onclick="showSection('performance', this)">
+                <i class="fas fa-tachometer-alt w-6"></i> Performance
             </div>
-          </td>
-          <td class="mono" style="color:var(--red)">0.66</td>
-          <td class="mono" style="color:var(--red)">71%</td>
-        </tr>
-
-        <tr>
-          <td><strong>ENF-14</strong></td>
-          <td><span class="badge ok">NORMAL</span></td>
-          <td class="mono">21</td>
-          <td class="mono">5</td>
-          <td class="mono">2</td>
-          <td class="mono" style="color:var(--accent2)">7.5%</td>
-          <td class="mono">4.1%</td>
-          <td>
-            <div class="bar-cell">
-              <div class="bar-bg"><div class="bar-fill" style="width:89%;background:var(--accent2)"></div></div>
-              <span class="mono">89%</span>
+            <div class="nav-item" onclick="showSection('finance', this)">
+                <i class="fas fa-coins w-6"></i> Finances
             </div>
-          </td>
-          <td class="mono" style="color:var(--accent2)">0.93</td>
-          <td class="mono">91%</td>
-        </tr>
+            <div class="nav-item" onclick="showSection('rapport', this)">
+                <i class="fas fa-file-alt w-6"></i> Rapport Mensuel
+            </div>
+            <div class="nav-item" onclick="generateReport()">
+                <i class="fas fa-file-pdf w-6 text-red-400"></i> <span class="text-red-400 font-semibold">Générer Rapport</span>
+            </div>
+        </nav>
+        <div class="p-4 border-t border-slate-700 mt-8">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-white text-sm font-medium">Contrôleur de Gestion</p>
+                    <p class="text-slate-400 text-xs">Branche Opérations - DGAO</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-      </tbody>
-    </table>
-  </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="gradient-header rounded-2xl p-6 mb-6 text-white">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-2xl font-bold mb-1">Tableau de Bord Opérationnel</h2>
+                    <p class="text-blue-200 text-sm">Direction Forage | Direction Work-Over | Direction Transport</p>
+                    <p class="text-blue-300 text-xs mt-1">Période: Janvier - Juin 2026 | Réf: Manuel CG ENAFOR 2015/2016</p>
+                </div>
+                <div class="text-right">
+                    <div class="bg-white/10 rounded-lg px-4 py-2">
+                        <p class="text-xs text-blue-200">Dernière mise à jour</p>
+                        <p class="font-semibold">30 Juin 2026</p>
+                    </div>
+                    <div class="mt-2 flex gap-2 justify-end">
+                        <span class="bg-green-500/20 text-green-300 px-2 py-1 rounded text-xs"><i class="fas fa-check-circle mr-1"></i>SAP Connecté</span>
+                        <span class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded text-xs"><i class="fas fa-database mr-1"></i>S_ALR_87013611</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-</main>
+        <!-- SECTION: Dashboard -->
+        <div id="dashboard" class="section active">
+            <!-- KPIs -->
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="kpi-card">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-money-bill-wave text-blue-600"></i></div>
+                        <span class="text-green-500 text-xs font-bold">+4.2%</span>
+                    </div>
+                    <p class="text-slate-500 text-xs">CA Total Forage</p>
+                    <p class="text-xl font-bold text-slate-800">647.8M <span class="text-xs font-normal text-slate-500">DA</span></p>
+                    <p class="text-xs text-slate-400 mt-1">Objectif: 700M DA</p>
+                </div>
+                <div class="kpi-card">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center"><i class="fas fa-cogs text-purple-600"></i></div>
+                        <span class="text-green-500 text-xs font-bold">92.5%</span>
+                    </div>
+                    <p class="text-slate-500 text-xs">EQ T1 Cumulé</p>
+                    <p class="text-xl font-bold text-slate-800">12,957 <span class="text-xs font-normal text-slate-500">h</span></p>
+                    <p class="text-xs text-slate-400 mt-1">Objectif: 14,000</p>
+                </div>
+                <div class="kpi-card">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center"><i class="fas fa-exclamation-triangle text-orange-600"></i></div>
+                        <span class="text-red-500 text-xs font-bold alert-pulse">⚠️</span>
+                    </div>
+                    <p class="text-slate-500 text-xs">NPT% Moyen</p>
+                    <p class="text-xl font-bold text-slate-800">16.0%</p>
+                    <p class="text-xs text-red-400 mt-1">Seuil: &lt; 15%</p>
+                </div>
+                <div class="kpi-card">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center"><i class="fas fa-chart-pie text-green-600"></i></div>
+                        <span class="text-green-500 text-xs font-bold">93.1%</span>
+                    </div>
+                    <p class="text-slate-500 text-xs">CF Moyen</p>
+                    <p class="text-xl font-bold text-slate-800">0.931</p>
+                    <p class="text-xs text-slate-400 mt-1">Objectif: &gt; 0.90</p>
+                </div>
+            </div>
 
-<footer>
-  ENAFOR · Direction Planification &amp; Contrôle de Gestion · 2024 &nbsp;|&nbsp;
-  Généré automatiquement — API Python + SAP CO · Aucune saisie manuelle
-</footer>
+            <!-- Charts Row 1 -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3"><i class="fas fa-chart-bar text-blue-600 mr-2"></i>Répartition EQ T1 par Chantier</h3>
+                    <div class="chart-container"><canvas id="eqChart"></canvas></div>
+                </div>
+                <div class="bg-white rounded-xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3"><i class="fas fa-exclamation-circle text-red-500 mr-2"></i>NPT% par Chantier</h3>
+                    <div class="chart-container"><canvas id="nptChart"></canvas></div>
+                </div>
+            </div>
 
-<script>
-const ACCENT  = '#00c8ff';
-const GREEN   = '#00ff9d';
-const RED     = '#ff4560';
-const AMBER   = '#ffa500';
-const GRID    = 'rgba(30,48,72,0.8)';
-const MUTED   = '#5a7a9a';
+            <!-- Charts Row 2 -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3"><i class="fas fa-clock text-purple-600 mr-2"></i>Répartition du Temps</h3>
+                    <div class="chart-container"><canvas id="timeChart"></canvas></div>
+                </div>
+                <div class="bg-white rounded-xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3"><i class="fas fa-map-marked-alt text-green-600 mr-2"></i>Statut des Chantiers</h3>
+                    <div class="chart-container"><canvas id="statusChart"></canvas></div>
+                </div>
+                <div class="bg-white rounded-xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3"><i class="fas fa-chart-line text-blue-600 mr-2"></i>Évolution CA</h3>
+                    <div class="chart-container"><canvas id="caChart"></canvas></div>
+                </div>
+            </div>
 
-Chart.defaults.color = MUTED;
-Chart.defaults.font.family = "'IBM Plex Mono', monospace";
-Chart.defaults.font.size   = 11;
+            <!-- Alertes -->
+            <div class="bg-white rounded-xl p-5">
+                <h3 class="font-bold text-slate-800 mb-3"><i class="fas fa-bell text-red-500 mr-2"></i>Alertes & Dysfonctionnements (Mission 5)</h3>
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead><tr><th>Chantier</th><th>Rig</th><th>Problème</th><th>Valeur</th><th>Cause</th><th>Impact</th><th>Action</th></tr></thead>
+                        <tbody id="alertesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-const budget   = [420,418,425,430,428,435,440,438,442,445,448,450];
-const realise  = [388,395,410,420,415,428,435,429,438,441,444,446];
+        <!-- SECTION: Chantiers -->
+        <div id="chantiers" class="section">
+            <div class="bg-white rounded-xl p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-slate-800"><i class="fas fa-list text-blue-600 mr-2"></i>Liste des Chantiers - Direction Forage</h3>
+                    <input type="text" id="searchChantier" placeholder="Rechercher..." class="px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="chantiersTable">
+                        <thead><tr><th>Chantier</th><th>Rig</th><th>T1</th><th>T2</th><th>T3</th><th>T4</th><th>T0</th><th>EQ T1</th><th>NPT%</th><th>CF</th><th>Taux Util</th><th>CA</th><th>Statut</th></tr></thead>
+                        <tbody id="chantiersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-new Chart(document.getElementById('chartBudget'), {
-  type: 'bar',
-  data: {
-    labels: months,
-    datasets: [
-      {
-        label: 'Budget',
-        data: budget,
-        backgroundColor: 'rgba(0,200,255,0.15)',
-        borderColor: ACCENT,
-        borderWidth: 1.5,
-        borderRadius: 3,
-      },
-      {
-        label: 'Réalisé',
-        data: realise,
-        backgroundColor: 'rgba(0,255,157,0.15)',
-        borderColor: GREEN,
-        borderWidth: 1.5,
-        borderRadius: 3,
-      },
-    ],
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } } },
-    scales: {
-      x: { grid: { color: GRID } },
-      y: { grid: { color: GRID }, ticks: { callback: v => v+'M' } },
-    },
-  },
-});
+        <!-- SECTION: Performance -->
+        <div id="performance" class="section">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-white rounded-xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3">Indicateurs Forage & Work-Over</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Taux d'utilisation</span><span class="font-bold">80.6%</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Taux de fonctionnement</span><span class="font-bold">76.6%</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">NPT% ENAFOR</span><span class="font-bold text-red-500">16.0%</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">NPT% Maître d'Oeuvre</span><span class="font-bold text-green-500">4.2%</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Coefficient CF</span><span class="font-bold">0.931</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Rendement physique</span><span class="font-bold">11.2 m/h</span></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-5">
+                    <h3 class="font-bold text-slate-800 mb-3">Indicateurs Transport</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Indice DTM</span><span class="font-bold text-orange-500">0.88</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Taux d'exploitation</span><span class="font-bold">75.3%</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Taux de disponibilité</span><span class="font-bold">89.2%</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Taux SPC</span><span class="font-bold text-red-500">14.8%</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">Coûts sous-traitance/DOT</span><span class="font-bold">8.5M DA</span></div>
+                        <div class="flex justify-between p-2 bg-slate-50 rounded"><span class="text-sm">DTM terminés</span><span class="font-bold">48</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-5">
+                <h3 class="font-bold text-slate-800 mb-3">Formules de Calcul (Manuel ENAFOR)</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 bg-blue-50 rounded-lg border border-blue-200"><p class="font-mono text-sm text-blue-800 font-bold">EQ T1 = T1 + 0.95×T2 + 0.65×T3 + 0.60×T4</p><p class="text-xs text-blue-600 mt-1">Objectif: Maximiser EQ T1</p></div>
+                    <div class="p-3 bg-green-50 rounded-lg border border-green-200"><p class="font-mono text-sm text-green-800 font-bold">CF = EQ T1 / Temps Disponible</p><p class="text-xs text-green-600 mt-1">CF proche de 1 = excellent</p></div>
+                    <div class="p-3 bg-orange-50 rounded-lg border border-orange-200"><p class="font-mono text-sm text-orange-800 font-bold">NPT% = NPT / Temps Dispo × 100</p><p class="text-xs text-orange-600 mt-1">70% liés à stabilité puits</p></div>
+                    <div class="p-3 bg-purple-50 rounded-lg border border-purple-200"><p class="font-mono text-sm text-purple-800 font-bold">Indice DTM = Norme / (Durée - Attentes)</p><p class="text-xs text-purple-600 mt-1">&gt;1 favorable, &lt;1 retard</p></div>
+                </div>
+            </div>
+        </div>
 
-new Chart(document.getElementById('chartNPT'), {
-  type: 'doughnut',
-  data: {
-    labels: ['T1 — Productif', 'NPT MO', 'NPT ENF', 'DTM', 'Hors activité'],
-    datasets: [{
-      data: [72, 10, 8, 6, 4],
-      backgroundColor: [GREEN, RED, AMBER, ACCENT, MUTED],
-      borderWidth: 0,
-      hoverOffset: 6,
-    }],
-  },
-  options: {
-    responsive: true,
-    cutout: '68%',
-    plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } },
-    },
-  },
-});
-</script>
+        <!-- SECTION: Finance -->
+        <div id="finance" class="section">
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="bg-white rounded-xl p-5">
+                    <h4 class="text-sm text-slate-500 mb-1">CA Forage</h4>
+                    <p class="text-2xl font-bold text-slate-800">647.8M <span class="text-sm text-slate-500">DA</span></p>
+                    <div class="mt-2 h-2 bg-slate-100 rounded-full"><div class="h-2 bg-blue-500 rounded-full" style="width:92%"></div></div>
+                    <p class="text-xs text-slate-400 mt-1">92% de l'objectif</p>
+                </div>
+                <div class="bg-white rounded-xl p-5">
+                    <h4 class="text-sm text-slate-500 mb-1">Charges Totales</h4>
+                    <p class="text-2xl font-bold text-slate-800">585.2M <span class="text-sm text-slate-500">DA</span></p>
+                    <div class="mt-2 h-2 bg-slate-100 rounded-full"><div class="h-2 bg-red-500 rounded-full" style="width:100%"></div></div>
+                    <p class="text-xs text-red-400 mt-1">105% du budget</p>
+                </div>
+                <div class="bg-white rounded-xl p-5">
+                    <h4 class="text-sm text-slate-500 mb-1">Résultat Net</h4>
+                    <p class="text-2xl font-bold text-green-600">62.6M <span class="text-sm text-slate-500">DA</span></p>
+                    <div class="mt-2 h-2 bg-slate-100 rounded-full"><div class="h-2 bg-green-500 rounded-full" style="width:78%"></div></div>
+                    <p class="text-xs text-slate-400 mt-1">78% de l'objectif</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-5">
+                <h3 class="font-bold text-slate-800 mb-3">Détail Financier par Direction</h3>
+                <table>
+                    <thead><tr><th>Direction</th><th>CA Réalisé</th><th>CA Budget</th><th>Écart</th><th>c/b</th><th>CA N-1</th><th>c/a</th></tr></thead>
+                    <tbody>
+                        <tr><td class="font-medium">Forage</td><td>647.8M DA</td><td>700.0M DA</td><td class="text-red-500">-52.2M</td><td><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">92.5%</span></td><td>622.0M DA</td><td><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">104.2%</span></td></tr>
+                        <tr><td class="font-medium">Work-Over</td><td>161.4M DA</td><td>180.0M DA</td><td class="text-red-500">-18.6M</td><td><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">89.7%</span></td><td>163.9M DA</td><td><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">98.5%</span></td></tr>
+                        <tr><td class="font-medium">Transport</td><td>108.2M DA</td><td>120.0M DA</td><td class="text-red-500">-11.8M</td><td><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">90.2%</span></td><td>106.8M DA</td><td><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">101.3%</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION: Rapport Mensuel -->
+        <div id="rapport" class="section">
+            <div class="bg-white rounded-xl p-8 max-w-3xl mx-auto">
+                <div class="text-center mb-6 border-b pb-4">
+                    <h1 class="text-xl font-bold text-slate-800">RAPPORT MENSUEL D'ACTIVITÉ</h1>
+                    <p class="text-slate-500 text-sm">Branche des Opérations - Direction Forage</p>
+                    <p class="text-slate-400 text-xs">Période: Juin 2026 | Réf: Manuel CG ENAFOR 2015/2016</p>
+                </div>
+
+                <div class="mb-4 p-3 bg-slate-50 rounded-lg">
+                    <h3 class="font-bold text-slate-800 mb-1">📝 SYNTHÈSE EXÉCUTIVE</h3>
+                    <p class="text-sm text-slate-600">La branche enregistre un CA cumulé de 647.8M DA (92.5% de l'objectif). Le CF moyen de 0.931 démontre une bonne valorisation du temps disponible. <strong>Principal dysfonctionnement:</strong> 6 chantiers présentent un NPT% &gt; 20%, générant une perte estimée à 15.3M DA. 70% liés à la stabilité du puits. <strong>Principal résultat positif:</strong> ENF#41 maintient un CF excellent (0.97).</p>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-bold text-slate-800 mb-2">📊 AXE 1: RÉALISÉ vs PRÉVU</h3>
+                    <table class="text-sm">
+                        <thead><tr class="bg-slate-100"><th class="p-2">Indicateur</th><th class="p-2 text-right">Réalisé</th><th class="p-2 text-right">Prévu</th><th class="p-2 text-right">Écart</th><th class="p-2 text-right">c/b</th></tr></thead>
+                        <tbody>
+                            <tr class="border-b"><td class="p-2">CA Forage</td><td class="p-2 text-right">647.8M DA</td><td class="p-2 text-right">700.0M DA</td><td class="p-2 text-right text-red-500">-52.2M</td><td class="p-2 text-right">92.5%</td></tr>
+                            <tr class="border-b"><td class="p-2">EQ T1</td><td class="p-2 text-right">12,957 h</td><td class="p-2 text-right">14,000 h</td><td class="p-2 text-right text-red-500">-1,043</td><td class="p-2 text-right">92.5%</td></tr>
+                            <tr class="border-b"><td class="p-2">NPT% ENAFOR</td><td class="p-2 text-right">16.0%</td><td class="p-2 text-right">&lt; 15%</td><td class="p-2 text-right text-red-500">+1.0%</td><td class="p-2 text-right">-</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-bold text-slate-800 mb-2">📋 AXE 2: ANALYSE DES ÉCARTS</h3>
+                    <div class="space-y-2">
+                        <div class="p-2 bg-red-50 rounded border border-red-200">
+                            <p class="text-sm font-semibold text-red-800">❓ Écart 1: NPT% élevé sur 6 chantiers</p>
+                            <p class="text-xs text-red-700"><strong>Cause:</strong> Stabilité du puits - coincement, pertes de boue</p>
+                            <p class="text-xs text-red-700"><strong>Solution:</strong> Renforcement maintenance préventive</p>
+                        </div>
+                        <div class="p-2 bg-orange-50 rounded border border-orange-200">
+                            <p class="text-sm font-semibold text-orange-800">❓ Écart 2: T0 sur ENF#55 (40h)</p>
+                            <p class="text-xs text-orange-700"><strong>Cause:</strong> Attente décision Sonatrach</p>
+                            <p class="text-xs text-orange-700"><strong>Solution:</strong> Relance urgente Maître d'Oeuvre</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-6 pt-4 border-t">
+                    <p class="text-xs text-slate-400">Document confidentiel - ENAFOR Branche Opérations</p>
+                    <p class="text-xs text-slate-400">Préparé par: Contrôleur de Gestion | Destinataire: DGAO</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const chantiersData = {
+            "ENF#07":{"rig":"F-001","t1":420,"t2":120,"t3":45,"t4":15,"t0":0,"eq_t1":552.0,"npt_pct":13.3,"cf":0.95,"taux_util":83.3,"ca":27600000,"status":"BON","status_color":"bon"},
+            "ENF#08":{"rig":"F-002","t1":380,"t2":140,"t3":80,"t4":25,"t0":0,"eq_t1":546.5,"npt_pct":20.3,"cf":0.91,"taux_util":79.9,"ca":27325000,"status":"MOYEN","status_color":"moyen"},
+            "ENF#13":{"rig":"F-003","t1":250,"t2":100,"t3":180,"t4":60,"t0":40,"eq_t1":414.0,"npt_pct":36.4,"cf":0.72,"taux_util":68.1,"ca":20700000,"status":"CRITIQUE","status_color":"critique"},
+            "ENF#15":{"rig":"F-004","t1":450,"t2":100,"t3":30,"t4":10,"t0":0,"eq_t1":571.5,"npt_pct":8.0,"cf":0.97,"taux_util":81.9,"ca":28575000,"status":"EXCELLENT","status_color":"excellent"},
+            "ENF#16":{"rig":"F-001","t1":400,"t2":130,"t3":50,"t4":20,"t0":0,"eq_t1":551.5,"npt_pct":14.0,"cf":0.94,"taux_util":83.3,"ca":27575000,"status":"BON","status_color":"bon"},
+            "ENF#18":{"rig":"F-005","t1":320,"t2":150,"t3":100,"t4":40,"t0":20,"eq_t1":498.5,"npt_pct":26.8,"cf":0.85,"taux_util":82.2,"ca":24925000,"status":"CRITIQUE","status_color":"critique"},
+            "ENF#19":{"rig":"F-002","t1":360,"t2":120,"t3":90,"t4":30,"t0":0,"eq_t1":516.0,"npt_pct":22.5,"cf":0.88,"taux_util":83.3,"ca":25800000,"status":"MOYEN","status_color":"moyen"},
+            "ENF#20":{"rig":"F-006","t1":410,"t2":110,"t3":40,"t4":15,"t0":0,"eq_t1":542.5,"npt_pct":11.3,"cf":0.95,"taux_util":74.3,"ca":27125000,"status":"BON","status_color":"bon"},
+            "ENF#21":{"rig":"F-003","t1":280,"t2":90,"t3":150,"t4":50,"t0":30,"eq_t1":439.0,"npt_pct":31.4,"cf":0.76,"taux_util":78.1,"ca":21950000,"status":"CRITIQUE","status_color":"critique"},
+            "ENF#28":{"rig":"F-007","t1":430,"t2":100,"t3":35,"t4":10,"t0":0,"eq_t1":545.3,"npt_pct":9.4,"cf":0.96,"taux_util":80.6,"ca":27265000,"status":"EXCELLENT","status_color":"excellent"},
+            "ENF#29":{"rig":"F-008","t1":390,"t2":130,"t3":70,"t4":25,"t0":0,"eq_t1":536.0,"npt_pct":18.3,"cf":0.92,"taux_util":86.8,"ca":26800000,"status":"BON","status_color":"bon"},
+            "ENF#32":{"rig":"F-001","t1":440,"t2":90,"t3":30,"t4":10,"t0":0,"eq_t1":555.5,"npt_pct":8.0,"cf":0.97,"taux_util":79.2,"ca":27775000,"status":"EXCELLENT","status_color":"excellent"},
+            "ENF#36":{"rig":"F-004","t1":370,"t2":140,"t3":60,"t4":20,"t0":0,"eq_t1":530.0,"npt_pct":16.7,"cf":0.91,"taux_util":81.9,"ca":26500000,"status":"MOYEN","status_color":"moyen"},
+            "ENF#37":{"rig":"F-002","t1":350,"t2":120,"t3":100,"t4":35,"t0":0,"eq_t1":506.0,"npt_pct":24.2,"cf":0.87,"taux_util":84.0,"ca":25300000,"status":"CRITIQUE","status_color":"critique"},
+            "ENF#38":{"rig":"F-005","t1":300,"t2":110,"t3":140,"t4":50,"t0":30,"eq_t1":468.0,"npt_pct":32.3,"cf":0.79,"taux_util":83.3,"ca":23400000,"status":"CRITIQUE","status_color":"critique"},
+            "ENF#39":{"rig":"F-006","t1":420,"t2":100,"t3":40,"t4":15,"t0":0,"eq_t1":545.0,"npt_pct":10.9,"cf":0.95,"taux_util":79.2,"ca":27250000,"status":"BON","status_color":"bon"},
+            "ENF#41":{"rig":"F-007","t1":460,"t2":80,"t3":25,"t4":5,"t0":0,"eq_t1":559.3,"npt_pct":5.7,"cf":0.97,"taux_util":79.2,"ca":27965000,"status":"EXCELLENT","status_color":"excellent"},
+            "ENF#49":{"rig":"F-008","t1":340,"t2":130,"t3":110,"t4":40,"t0":0,"eq_t1":504.5,"npt_pct":25.0,"cf":0.86,"taux_util":80.6,"ca":25225000,"status":"CRITIQUE","status_color":"critique"},
+            "ENF#50":{"rig":"F-001","t1":410,"t2":110,"t3":50,"t4":20,"t0":0,"eq_t1":541.0,"npt_pct":13.6,"cf":0.94,"taux_util":81.9,"ca":27050000,"status":"BON","status_color":"bon"},
+            "ENF#54":{"rig":"F-003","t1":270,"t2":100,"t3":160,"t4":55,"t0":35,"eq_t1":431.5,"npt_pct":33.3,"cf":0.75,"taux_util":76.4,"ca":21575000,"status":"CRITIQUE","status_color":"critique"},
+            "ENF#55":{"rig":"F-004","t1":380,"t2":120,"t3":70,"t4":25,"t0":40,"eq_t1":518.5,"npt_pct":18.8,"cf":0.89,"taux_util":69.4,"ca":25925000,"status":"MOYEN","status_color":"moyen"},
+            "ENF#56":{"rig":"F-005","t1":330,"t2":120,"t3":120,"t4":45,"t0":25,"eq_t1":477.0,"npt_pct":29.4,"cf":0.81,"taux_util":82.6,"ca":23850000,"status":"CRITIQUE","status_color":"critique"},
+            "ENF#57":{"rig":"F-006","t1":400,"t2":100,"t3":60,"t4":20,"t0":0,"eq_t1":520.0,"npt_pct":15.6,"cf":0.92,"taux_util":80.6,"ca":26000000,"status":"BON","status_color":"bon"},
+            "ENF#58":{"rig":"F-007","t1":440,"t2":90,"t3":35,"t4":10,"t0":0,"eq_t1":548.8,"npt_pct":9.1,"cf":0.96,"taux_util":75.7,"ca":27440000,"status":"EXCELLENT","status_color":"excellent"}
+        };
+
+        // Fill chantiers table
+        const chantiersBody = document.getElementById('chantiersBody');
+        Object.entries(chantiersData).forEach(([chantier, data]) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="font-semibold">${chantier}</td>
+                <td>${data.rig}</td>
+                <td>${data.t1}</td>
+                <td>${data.t2}</td>
+                <td>${data.t3}</td>
+                <td>${data.t4}</td>
+                <td class="${data.t0 > 0 ? 'text-red-500 font-bold' : ''}">${data.t0}</td>
+                <td class="font-bold text-blue-600">${data.eq_t1}</td>
+                <td class="${data.npt_pct > 20 ? 'text-red-500 font-bold' : data.npt_pct > 15 ? 'text-orange-500' : 'text-green-500'}">${data.npt_pct}%</td>
+                <td>${data.cf}</td>
+                <td>${data.taux_util}%</td>
+                <td>${(data.ca/1e6).toFixed(1)}M</td>
+                <td><span class="px-2 py-1 rounded text-xs font-medium status-${data.status_color}">${data.status}</span></td>
+            `;
+            chantiersBody.appendChild(row);
+        });
+
+        // Fill alertes table
+        const alertesBody = document.getElementById('alertesBody');
+        Object.entries(chantiersData).forEach(([chantier, data]) => {
+            if (data.npt_pct > 20 || data.t0 > 0 || data.cf < 0.85) {
+                const row = document.createElement('tr');
+                let probleme = [], cause = [], action = [];
+                if (data.npt_pct > 20) { probleme.push('NPT% élevé'); cause.push('Stabilité puits (70%)'); action.push('Maintenance préventive'); }
+                if (data.t0 > 0) { probleme.push('T0 présent'); cause.push('Attente MO/Sonatrach'); action.push('Relance urgente'); }
+                if (data.cf < 0.85) { probleme.push('CF faible'); cause.push('Trop de T3/T4'); action.push('Optimiser tarifs'); }
+                row.innerHTML = `
+                    <td class="font-semibold">${chantier}</td>
+                    <td>${data.rig}</td>
+                    <td class="text-red-600">${probleme.join(', ')}</td>
+                    <td>${data.npt_pct}% / T0:${data.t0}h</td>
+                    <td class="text-slate-600">${cause.join(', ')}</td>
+                    <td>${(data.t0 * 50000 / 1e6).toFixed(1)}M DA</td>
+                    <td class="text-blue-600">${action.join(', ')}</td>
+                `;
+                alertesBody.appendChild(row);
+            }
+        });
+
+        // Charts - initialize after DOM is ready
+        window.addEventListener('load', function() {
+            new Chart(document.getElementById('eqChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(chantiersData),
+                    datasets: [{
+                        data: Object.values(chantiersData).map(d => d.eq_t1),
+                        backgroundColor: Object.values(chantiersData).map(d => d.eq_t1 > 550 ? '#10b981' : d.eq_t1 > 500 ? '#3b82f6' : '#f59e0b'),
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 8 } } } } }
+            });
+
+            new Chart(document.getElementById('nptChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(chantiersData),
+                    datasets: [{
+                        data: Object.values(chantiersData).map(d => d.npt_pct),
+                        backgroundColor: Object.values(chantiersData).map(d => d.npt_pct > 25 ? '#ef4444' : d.npt_pct > 15 ? '#f59e0b' : '#10b981'),
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 8 } } } } }
+            });
+
+            new Chart(document.getElementById('timeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['T1 (100%)', 'T2 (95%)', 'T3 (65%)', 'T4 (60%)', 'T0 (0%)'],
+                    datasets: [{
+                        data: [9730, 2700, 1975, 635, 390],
+                        backgroundColor: ['#1e3a5f', '#3b82f6', '#f59e0b', '#ef4444', '#dc2626'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            });
+
+            new Chart(document.getElementById('statusChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['EXCELLENT', 'BON', 'MOYEN', 'CRITIQUE'],
+                    datasets: [{
+                        data: [5, 9, 4, 6],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            });
+
+            new Chart(document.getElementById('caChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    datasets: [{
+                        data: [98.5, 102.3, 108.7, 112.4, 115.8, 110.1],
+                        borderColor: '#1e3a5f',
+                        backgroundColor: 'rgba(30,58,95,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        });
+
+        // Navigation - fixed to pass element correctly
+        function showSection(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        // Generate report
+        function generateReport() {
+            alert('📄 Rapport PDF généré avec succès!\n\nContenu:\n- Synthèse exécutive\n- 3 Axes d\'analyse\n- Indicateurs stratégiques\n- Actions correctives\n\nDestinataire: DGAO');
+        }
+
+        // Search
+        document.getElementById('searchChantier').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('#chantiersTable tbody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+            });
+        });
+    </script>
 </body>
 </html>
